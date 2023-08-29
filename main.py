@@ -33,8 +33,10 @@ with open(cdfPath, "r") as cdf:
         score = 0
         tl = 0
         ml = 0
+        conf += f"input_pre {taskname}\n"
         conf += f"input_suf in\n"
-        conf += f"output_suf ans\n"
+        conf += f"output_pre {taskname}\n"
+        conf += f"output_suf out\n"
         conf += f"n_subtasks {len(testcases)}\n"
         for case in testcases:
             id += 1
