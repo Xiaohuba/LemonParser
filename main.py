@@ -17,7 +17,7 @@ if cdfPath == None:
 
 print(f"INFO: Load .cdf file: {cdfPath}\n")
 
-with open(cdfPath, "r") as cdf:
+with open(cdfPath, "r", encoding="utf-8") as cdf:
     json_obj = json.load(cdf)
     tasks = json_obj["tasks"]
     os.chdir(lemonDir)
