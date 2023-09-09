@@ -43,3 +43,11 @@ def parseSPJ(pth):
                 else:
                     return (0, content)
     return (-1, "")
+
+
+def isDependence(name):
+    name = name.lower()
+    if name.endswith("lemon_subtaskdependence_flag"):
+        return int(name.split("_")[0])
+    else:
+        return -1

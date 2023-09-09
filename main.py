@@ -3,11 +3,13 @@ import utils
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
-parser.add_argument("--silent", type=bool, help="Silent mode")
+parser.add_argument("-S", "--silent", help="Silent mode", action="store_true")
+parser.add_argument("--task", nargs="?", default="*", help="Parse specific task")
 args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
 silent = args.silent
+parse_task = args.task
 cdfPath = utils.getCDFPath(lemonDir)
 
 if cdfPath == None:
@@ -32,6 +34,8 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
     for task in tasks:
         try:
             taskname = task["problemTitle"]
+            if not parse_task.count("*") and not parse_task.count(taskname):
+                continue
             print(f"INFO: Parsing task {taskname}...")
             os.mkdir(os.path.join("to_uoj", taskname))
             testcases = task["testCases"]
@@ -54,7 +58,12 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                 tl = max(tl, case["timeLimit"])
                 ml = max(ml, case["memoryLimit"])
                 caseid = 0
+                dep = []
                 for inf in case["inputFiles"]:
+                    depd = utils.isDependence(inf)
+                    if depd != -1:
+                        dep.append(depd)
+                        continue
                     fr = "data" + utils.parsePath(inf)
                     caseid += 1
                     to = os.path.join(
@@ -78,6 +87,12 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                         print("INFO: Copying", fr, "->", to)
                     shutil.copy2(fr, to)
                 cnt += len(case["inputFiles"])
+                if len(dep) > 0:
+                    conf += f"subtask_dependence_{id} many\n"
+                    dep_cnt = 0
+                    for depd in dep:
+                        dep_cnt += 1
+                        conf += f"subtask_dependence_{id}_{dep_cnt} {depd}\n"
             conf += f"n_tests {cnt}\n"
             conf += f"n_ex_tests 0\n"
             conf += f"n_sample_tests 0\n"
