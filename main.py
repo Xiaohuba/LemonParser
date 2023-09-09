@@ -86,7 +86,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     if not silent:
                         print("INFO: Copying", fr, "->", to)
                     shutil.copy2(fr, to)
-                cnt += len(case["inputFiles"])
+                cnt += caseid
                 if len(dep) > 0:
                     conf += f"subtask_dependence_{id} many\n"
                     dep_cnt = 0
