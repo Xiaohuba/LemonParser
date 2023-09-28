@@ -96,7 +96,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             conf += f"n_tests {cnt}\n"
             conf += f"n_ex_tests 0\n"
             conf += f"n_sample_tests 0\n"
-            conf += f"time_limit_ms {tl}\n"
+            conf += f"time_limit {tl / 1000}\n"
             conf += f"memory_limit {ml}\n"
             if len(task["specialJudge"]) == 0:
                 conf += f"use_builtin_checker wcmp\n"
