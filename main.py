@@ -53,7 +53,8 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             for case in testcases:
                 id += 1
                 score += case["fullScore"]
-                conf += f"subtask_end_{id} {cnt + len(case['inputFiles'])}\n"
+                # Hack: inputFiles may contain dependence flags; use outputFiles instead
+                conf += f"subtask_end_{id} {cnt + len(case['outputFiles'])}\n"
                 conf += f"subtask_score_{id} {case['fullScore']}\n"
                 tl = max(tl, case["timeLimit"])
                 ml = max(ml, case["memoryLimit"])
