@@ -17,5 +17,7 @@ positional arguments:
 options:
   -h, --help     show this help message and exit
   -S, --silent   Silent mode
-  --task [TASK]  Parse specific task (* for all tasks)
+  -A, --attach   Attach statement
+  -Z, --zip      Auto create zipfile
+  --task [TASK]  Parse specific task (* for all)
 ```

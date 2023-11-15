@@ -4,12 +4,18 @@ import utils
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
 parser.add_argument("-S", "--silent", help="Silent mode", action="store_true")
-parser.add_argument("--task", nargs="?", default="*", help="Parse specific task")
+parser.add_argument("-A", "--attach", help="Attach statement", action="store_true")
+parser.add_argument("-Z", "--zip", help="Auto create zipfile", action="store_true")
+parser.add_argument(
+    "--task", nargs="?", default="*", help="Parse specific task (* for all)"
+)
 args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
 silent = args.silent
+attach_statement = args.attach
 parse_task = args.task
+create_zip = args.zip
 cdfPath = utils.getCDFPath(lemonDir)
 
 if cdfPath == None:
@@ -36,6 +42,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             taskname = task["problemTitle"]
             if not parse_task.count("*") and not parse_task.count(taskname):
                 continue
+            print("=======\n")
             print(f"INFO: Parsing task {taskname}...")
             os.mkdir(os.path.join("to_uoj", taskname))
             testcases = task["testCases"]
@@ -122,7 +129,19 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             confFile = open(os.path.join("to_uoj", taskname, "problem.conf"), "w")
             confFile.write(conf)
             confFile.close()
-            print("\n\n")
+            if attach_statement:
+                down_path = os.path.join("to_uoj", taskname, "download")
+                os.mkdir(down_path)
+                try:
+                    shutil.copy2(os.path.join("down", "statement.pdf"), down_path)
+                except Exception as exp:
+                    print(f"ERROR: Failed to attach statement!\nException is {exp}")
+                attach_statement = False
+            if create_zip:
+                print(f"INFO: creating zipfile for task `{taskname}`...", end="")
+                utils.zipProblem(os.path.join("to_uoj", taskname))
+                print(f"done.")
+            print("\n=======\n")
         except Exception as exp:
             print(f"ERROR: Unhandled Exception {exp}")
             print("Passing...")

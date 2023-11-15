@@ -1,4 +1,4 @@
-import platform, os
+import platform, os, zipfile
 
 os_info = platform.system()
 
@@ -51,3 +51,14 @@ def isDependence(name):
         return int(name.split("_")[0])
     else:
         return -1
+
+
+def zipProblem(path):
+    cur = os.path.abspath(os.curdir)
+    zip_obj = zipfile.ZipFile(path + ".zip", "w", zipfile.ZIP_DEFLATED)
+    os.chdir(path)
+    for root, dirs, files in os.walk("."):
+        for file in files:
+            zip_obj.write(os.path.join(root, file))
+    zip_obj.close()
+    os.chdir(cur)
