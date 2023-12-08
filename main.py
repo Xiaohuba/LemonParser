@@ -1,4 +1,4 @@
-import json, argparse, os, shutil, random
+import json, argparse, os, shutil, random, sys
 import utils
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
@@ -138,7 +138,8 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
                 attach_statement = False
             if create_zip:
-                print(f"INFO: creating zipfile for task `{taskname}`...", end="")
+                print(f"INFO: creating zipfile for task `{taskname}`...", end=" ")
+                sys.stdout.flush()
                 utils.zipProblem(os.path.join("to_uoj", taskname))
                 print(f"done.")
             print("\n=======\n")
