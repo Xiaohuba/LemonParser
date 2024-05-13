@@ -1,5 +1,13 @@
+"""
+Parse `.cdf` file of [lemonlime](https://github.com/Project-LemonLime/Project_LemonLime), and generate uoj-format `problem.conf`!
+Author: Xiaohuba
+"""
+
 import json, argparse, os, shutil, random, sys
 import utils
+
+__version__ = "0.9"
+__author__ = "Xiaohuba"
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
@@ -46,7 +54,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             print(f"INFO: Parsing task {taskname}...")
             os.mkdir(os.path.join("to_uoj", taskname))
             testcases = task["testCases"]
-            conf = ""
+            conf = f"# auto-generated-conf-file-by-lemon-parser-{__version__}\n"
             cnt = 0
             id = 0
             score = 0
@@ -104,7 +112,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             conf += f"n_tests {cnt}\n"
             conf += f"n_ex_tests 0\n"
             conf += f"n_sample_tests 0\n"
-            conf += f"time_limit {tl / 1000}\n"
+            conf += f"time_limit {round(tl / 1000)}\n"  # Hack: universaloj doesn't support float TL. Round to integer instead.
             conf += f"memory_limit {ml}\n"
             if len(task["specialJudge"]) == 0:
                 conf += f"use_builtin_checker wcmp\n"
