@@ -16,7 +16,7 @@ def parsePath(pth):
     cur = ""
     final = ""
     for ch in pth:
-        if ch == "/" or ch == "\\":
+        if ch in ("/", "\\"):
             if os_info == "Windows":
                 final += "\\" + cur
             else:
@@ -31,7 +31,7 @@ def parseSPJ(pth):
     files = os.listdir(pth)
     for file in files:
         # print(f"{file}")
-        if file == "chk.cpp" or file == "checker.cpp":
+        if file in ("chk.cpp", "checker.cpp"):
             with open(os.path.join(pth, file), "r") as spj:
                 content = spj.read()
                 content = content.replace("testlib_for_lemon.h", "testlib.h")
@@ -57,7 +57,7 @@ def zipProblem(path):
     cur = os.path.abspath(os.curdir)
     zip_obj = zipfile.ZipFile(path + ".zip", "w", zipfile.ZIP_DEFLATED)
     os.chdir(path)
-    for root, dirs, files in os.walk("."):
+    for root, _, files in os.walk("."):
         for file in files:
             zip_obj.write(os.path.join(root, file))
     zip_obj.close()

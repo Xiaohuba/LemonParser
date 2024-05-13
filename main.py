@@ -1,5 +1,6 @@
 """
-Parse `.cdf` file of [lemonlime](https://github.com/Project-LemonLime/Project_LemonLime), and generate uoj-format `problem.conf`!
+Parse `.cdf` file of [lemonlime](https://github.com/Project-LemonLime/Project_LemonLime),
+and generate uoj-format `problem.conf`!
 Author: Xiaohuba
 """
 
@@ -26,7 +27,7 @@ parse_task = args.task
 create_zip = args.zip
 cdfPath = utils.getCDFPath(lemonDir)
 
-if cdfPath == None:
+if cdfPath is None:
     print("ERROR: No .cdf file found!")
     print("Exiting...")
     exit(1)
@@ -56,7 +57,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             testcases = task["testCases"]
             conf = f"# auto-generated-conf-file-by-lemon-parser-{__version__}\n"
             cnt = 0
-            id = 0
+            tc_id = 0
             score = 0
             tl = 0
             ml = 0
@@ -66,11 +67,11 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             conf += f"output_suf out\n"
             conf += f"n_subtasks {len(testcases)}\n"
             for case in testcases:
-                id += 1
+                tc_id += 1
                 score += case["fullScore"]
                 # Hack: inputFiles may contain dependence flags; use outputFiles instead
-                conf += f"subtask_end_{id} {cnt + len(case['outputFiles'])}\n"
-                conf += f"subtask_score_{id} {case['fullScore']}\n"
+                conf += f"subtask_end_{tc_id} {cnt + len(case['outputFiles'])}\n"
+                conf += f"subtask_score_{tc_id} {case['fullScore']}\n"
                 tl = max(tl, case["timeLimit"])
                 ml = max(ml, case["memoryLimit"])
                 caseid = 0
@@ -104,15 +105,16 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     shutil.copy2(fr, to)
                 cnt += caseid
                 if len(dep) > 0:
-                    conf += f"subtask_dependence_{id} many\n"
+                    conf += f"subtask_dependence_{tc_id} many\n"
                     dep_cnt = 0
                     for depd in dep:
                         dep_cnt += 1
-                        conf += f"subtask_dependence_{id}_{dep_cnt} {depd}\n"
+                        conf += f"subtask_dependence_{tc_id}_{dep_cnt} {depd}\n"
             conf += f"n_tests {cnt}\n"
             conf += f"n_ex_tests 0\n"
             conf += f"n_sample_tests 0\n"
-            conf += f"time_limit {round(tl / 1000)}\n"  # Hack: universaloj doesn't support float TL. Round to integer instead.
+            # Hack: universaloj doesn't support float TL. Round to integer instead.
+            conf += f"time_limit {round(tl / 1000)}\n"
             conf += f"memory_limit {ml}\n"
             if len(task["specialJudge"]) == 0:
                 conf += f"use_builtin_checker wcmp\n"
@@ -138,13 +140,14 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             confFile.write(conf)
             confFile.close()
             if attach_statement:
+                statement_path = os.path.join("down", "statement.pdf")
                 down_path = os.path.join("to_uoj", taskname, "download")
                 os.mkdir(down_path)
                 try:
-                    shutil.copy2(os.path.join("down", "statement.pdf"), down_path)
+                    print("INFO: Copying", fr, "->", to)
+                    shutil.copy2(statement_path, down_path)
                 except Exception as exp:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
-                attach_statement = False
             if create_zip:
                 print(f"INFO: creating zipfile for task `{taskname}`...", end=" ")
                 sys.stdout.flush()
