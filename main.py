@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
 parser.add_argument("-S", "--silent", help="Silent mode", action="store_true")
 parser.add_argument("-A", "--attach", help="Attach statement", action="store_true")
+parser.add_argument("-O", "--solution", help="Attach solution", action="store_true")
 parser.add_argument("-Z", "--zip", help="Auto create zipfile", action="store_true")
 parser.add_argument(
     "--task", nargs="?", default="*", help="Parse specific task (* for all)"
@@ -23,6 +24,7 @@ args = parser.parse_args()
 lemonDir = os.path.abspath(args.filename)
 silent = args.silent
 attach_statement = args.attach
+attach_sol = args.solution
 parse_task = args.task
 create_zip = args.zip
 cdfPath = utils.getCDFPath(lemonDir)
@@ -132,6 +134,46 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                 else:
                     print("WARNING: This task has unsupported spj.")
                     print("You may need to edit it manually.")
+
+            if attach_statement:
+                statement_path = os.path.join("down", "statement.pdf")
+                down_path = os.path.join("to_uoj", taskname, "download")
+                main_path = os.path.join("to_uoj", taskname)
+                os.mkdir(down_path)
+                try:
+                    print(
+                        "INFO: Copying statement",
+                        statement_path,
+                        "->",
+                        f"{down_path}/statement.pdf",
+                    )
+                    shutil.copy2(statement_path, down_path)
+                    print(
+                        "INFO: Copying statement",
+                        statement_path,
+                        "->",
+                        f"{main_path}/statement.pdf",
+                    )
+                    shutil.copy2(statement_path, main_path)
+                except Exception as exp:
+                    print(f"ERROR: Failed to attach statement!\nException is {exp}")
+                conf += f"use_pdf_statement on"
+
+            if attach_sol:
+                sol_path = "solution.pdf"
+                main_path = os.path.join("to_uoj", taskname)
+                try:
+                    print(
+                        "INFO: Copying statement",
+                        sol_path,
+                        "->",
+                        f"{main_path}/solution.pdf",
+                    )
+                    shutil.copy2(sol_path, main_path)
+                except Exception as exp:
+                    print(f"ERROR: Failed to attach statement!\nException is {exp}")
+                conf += f"show_solution on"
+
             conf += f"use_builtin_judger on\n"
             if task["taskType"] != 0:
                 print("WARNING: Unsupported task type.")
@@ -139,15 +181,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             confFile = open(os.path.join("to_uoj", taskname, "problem.conf"), "w")
             confFile.write(conf)
             confFile.close()
-            if attach_statement:
-                statement_path = os.path.join("down", "statement.pdf")
-                down_path = os.path.join("to_uoj", taskname, "download")
-                os.mkdir(down_path)
-                try:
-                    print("INFO: Copying", fr, "->", to)
-                    shutil.copy2(statement_path, down_path)
-                except Exception as exp:
-                    print(f"ERROR: Failed to attach statement!\nException is {exp}")
+
             if create_zip:
                 print(f"INFO: creating zipfile for task `{taskname}`...", end=" ")
                 sys.stdout.flush()
