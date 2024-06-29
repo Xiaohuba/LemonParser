@@ -157,7 +157,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     shutil.copy2(statement_path, main_path)
                 except Exception as exp:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
-                conf += f"use_pdf_statement on"
+                conf += f"use_pdf_statement on\n"
 
             if attach_sol:
                 sol_path = "solution.pdf"
@@ -172,7 +172,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     shutil.copy2(sol_path, main_path)
                 except Exception as exp:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
-                conf += f"show_solution on"
+                conf += f"show_solution on\n"
 
             conf += f"use_builtin_judger on\n"
             if task["taskType"] != 0:
