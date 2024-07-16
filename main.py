@@ -34,7 +34,7 @@ if cdfPath is None:
     print("Exiting...")
     exit(1)
 
-print(f"INFO: Load .cdf file: {cdfPath}\n")
+print(f"INFO: Loaded .cdf file: {cdfPath}\n")
 
 with open(cdfPath, "r", encoding="utf-8") as cdf:
     json_obj = json.load(cdf)
@@ -118,23 +118,28 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             # Hack: universaloj doesn't support float TL. Round to integer instead.
             conf += f"time_limit {round(tl / 1000)}\n"
             conf += f"memory_limit {ml}\n"
-            if len(task["specialJudge"]) == 0:
+            if task["specialJudge"] in ("", "wcmp"):
                 conf += f"use_builtin_checker wcmp\n"
                 if not silent:
                     print(f"INFO: Using `wcmp` for task {taskname}.")
             else:
-                (state, text) = utils.parseSPJ(os.path.join(lemonDir, "data", taskname))
-                # print(f"LOG: {os.path.join(lemonDir, 'data', taskname)}")
-                if state == 0:
+                spj_name = (
+                    task["specialJudge"].replace(".exe", ".cpp").replace(".bin", ".cpp")
+                )
+                if not spj_name.endswith(".cpp"):
+                    spj_name += ".cpp"
+                try:
                     if not silent:
-                        print(f"INFO: Parsing spj for task {taskname}...")
+                        print(f"INFO: Parsing spj {spj_name} for task {taskname}...")
+                    text = utils.parseSPJ(os.path.join(lemonDir, "data", spj_name))
+                except Exception as err:
+                    print(f"WARNING: Exception caught: {err}")
+                    print("WARNING: This task has unsupported spj.")
+                    print("You may need to edit it manually.")
+                else:
                     spjFile = open(os.path.join("to_uoj", taskname, "chk.cpp"), "w")
                     spjFile.write(text)
                     spjFile.close()
-                else:
-                    print("WARNING: This task has unsupported spj.")
-                    print("You may need to edit it manually.")
-
             if attach_statement:
                 statement_path = os.path.join("down", "statement.pdf")
                 down_path = os.path.join("to_uoj", taskname, "download")
@@ -164,7 +169,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                 main_path = os.path.join("to_uoj", taskname)
                 try:
                     print(
-                        "INFO: Copying statement",
+                        "INFO: Copying solution",
                         sol_path,
                         "->",
                         f"{main_path}/solution.pdf",
@@ -183,7 +188,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             confFile.close()
 
             if create_zip:
-                print(f"INFO: creating zipfile for task `{taskname}`...", end=" ")
+                print(f"INFO: Creating zipfile for task `{taskname}`...", end=" ")
                 sys.stdout.flush()
                 utils.zipProblem(os.path.join("to_uoj", taskname))
                 print(f"done.")
