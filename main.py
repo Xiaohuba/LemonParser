@@ -7,14 +7,22 @@ Author: Xiaohuba
 import json, argparse, os, shutil, random, sys
 import utils
 
-__version__ = "0.9"
+__version__ = "0.10"
 __author__ = "Xiaohuba"
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
 parser.add_argument("-S", "--silent", help="Silent mode", action="store_true")
-parser.add_argument("-A", "--attach", help="Attach statement", action="store_true")
-parser.add_argument("-O", "--solution", help="Attach solution", action="store_true")
+parser.add_argument(
+    "-D", "--down", help="Attach statement and samples", action="store_true"
+)
+parser.add_argument("-E", "--editorial", help="Attach editorial", action="store_true")
+parser.add_argument(
+    "-H",
+    "--hack",
+    help="Enable hack(both std and validator are required)",
+    action="store_true",
+)
 parser.add_argument("-Z", "--zip", help="Auto create zipfile", action="store_true")
 parser.add_argument(
     "--task", nargs="?", default="*", help="Parse specific task (* for all)"
@@ -23,11 +31,15 @@ args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
 silent = args.silent
-attach_statement = args.attach
-attach_sol = args.solution
+attach_down = args.down
+attach_sol = args.editorial
+hack = args.hack
 parse_task = args.task
 create_zip = args.zip
 cdfPath = utils.getCDFPath(lemonDir)
+
+if hack:
+    print("WARNING: Hack is not supported yet.")
 
 if cdfPath is None:
     print("ERROR: No .cdf file found!")
@@ -63,6 +75,8 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             score = 0
             tl = 0
             ml = 0
+            no_err = 1
+
             conf += f"input_pre {taskname}\n"
             conf += f"input_suf in\n"
             conf += f"output_pre {taskname}\n"
@@ -90,9 +104,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                         taskname,
                         f"{task['problemTitle']}{caseid + cnt}.in",
                     )
-                    if not silent:
-                        print("INFO: Copying", fr, "->", to)
-                    shutil.copy2(fr, to)
+                    utils.copy_files(fr, to, silent)
                 caseid = 0
                 for ouf in case["outputFiles"]:
                     fr = "data" + utils.parsePath(ouf)
@@ -102,9 +114,8 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                         taskname,
                         f"{task['problemTitle']}{caseid + cnt}.out",
                     )
-                    if not silent:
-                        print("INFO: Copying", fr, "->", to)
-                    shutil.copy2(fr, to)
+                    utils.copy_files(fr, to, silent)
+
                 cnt += caseid
                 if len(dep) > 0:
                     conf += f"subtask_dependence_{tc_id} many\n"
@@ -136,62 +147,52 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     print(f"WARNING: Exception caught: {err}")
                     print("WARNING: This task has unsupported spj.")
                     print("You may need to edit it manually.")
+                    no_err = 0
                 else:
                     spjFile = open(os.path.join("to_uoj", taskname, "chk.cpp"), "w")
                     spjFile.write(text)
                     spjFile.close()
-            if attach_statement:
+            if attach_down:
                 statement_path = os.path.join("down", "statement.pdf")
+                sample_path = os.path.join("down", taskname)
                 down_path = os.path.join("to_uoj", taskname, "download")
                 main_path = os.path.join("to_uoj", taskname)
                 os.mkdir(down_path)
                 try:
-                    print(
-                        "INFO: Copying statement",
-                        statement_path,
-                        "->",
-                        f"{down_path}/statement.pdf",
-                    )
-                    shutil.copy2(statement_path, down_path)
-                    print(
-                        "INFO: Copying statement",
-                        statement_path,
-                        "->",
-                        f"{main_path}/statement.pdf",
-                    )
-                    shutil.copy2(statement_path, main_path)
+                    utils.copy_files(statement_path, down_path, silent)
+                    utils.copy_files(statement_path, main_path, silent)
+                    utils.copy_dir(sample_path, down_path, silent)
                 except Exception as exp:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
+                    no_err = 0
                 conf += f"use_pdf_statement on\n"
 
             if attach_sol:
                 sol_path = "solution.pdf"
                 main_path = os.path.join("to_uoj", taskname)
                 try:
-                    print(
-                        "INFO: Copying solution",
-                        sol_path,
-                        "->",
-                        f"{main_path}/solution.pdf",
-                    )
-                    shutil.copy2(sol_path, main_path)
+                    utils.copy_files(sol_path, main_path, silent)
                 except Exception as exp:
-                    print(f"ERROR: Failed to attach statement!\nException is {exp}")
+                    print(f"ERROR: Failed to attach solution!\nException is {exp}")
+                    no_err = 0
                 conf += f"show_solution on\n"
 
             conf += f"use_builtin_judger on\n"
             if task["taskType"] != 0:
                 print("WARNING: Unsupported task type.")
                 print("You may need to configure it manually.")
+                no_err = 0
             confFile = open(os.path.join("to_uoj", taskname, "problem.conf"), "w")
             confFile.write(conf)
             confFile.close()
 
-            if create_zip:
+            if create_zip and no_err:
                 print(f"INFO: Creating zipfile for task `{taskname}`...", end=" ")
                 sys.stdout.flush()
                 utils.zipProblem(os.path.join("to_uoj", taskname))
                 print(f"done.")
+            elif create_zip:
+                print("WARNING: Skipped zipfile creation.")
             print("\n=======\n")
         except Exception as exp:
             print(f"ERROR: Unhandled Exception {exp}")

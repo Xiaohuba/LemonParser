@@ -1,4 +1,4 @@
-import platform, os, zipfile
+import platform, os, zipfile, shutil
 
 os_info = platform.system()
 
@@ -57,3 +57,17 @@ def zipProblem(path):
             zip_obj.write(os.path.join(root, file))
     zip_obj.close()
     os.chdir(cur)
+
+
+def copy_files(fr, to, silent):
+    if not silent:
+        print("INFO: Copying", fr, "->", to)
+    shutil.copy2(fr, to)
+
+
+def copy_dir(fr, to, silent):
+    files = os.listdir(fr)
+    for file in files:
+        path = os.path.join(fr, file)
+        if not os.path.isdir(path):
+            copy_files(path, to, silent)
