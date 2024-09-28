@@ -4,10 +4,10 @@ and generate uoj-format `problem.conf`!
 Author: Xiaohuba
 """
 
-import json, argparse, os, shutil, random, sys
+import json, argparse, os, random, sys, math
 import utils
 
-__version__ = "0.10"
+__version__ = "0.11"
 __author__ = "Xiaohuba"
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
@@ -27,6 +27,9 @@ parser.add_argument("-Z", "--zip", help="Auto create zipfile", action="store_tru
 parser.add_argument(
     "--task", nargs="?", default="*", help="Parse specific task (* for all)"
 )
+parser.add_argument(
+    "--noip", help="Use noip-style checker instead of `wcmp`", action="store_true"
+)
 args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
@@ -36,6 +39,7 @@ attach_sol = args.editorial
 hack = args.hack
 parse_task = args.task
 create_zip = args.zip
+checker_name = "noip" if args.noip else "wcmp"
 cdfPath = utils.getCDFPath(lemonDir)
 
 if hack:
@@ -47,6 +51,7 @@ if cdfPath is None:
     exit(1)
 
 print(f"INFO: Loaded .cdf file: {cdfPath}\n")
+print(f"INFO: default checker set to: {checker_name}\n")
 
 with open(cdfPath, "r", encoding="utf-8") as cdf:
     json_obj = json.load(cdf)
@@ -127,12 +132,12 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             conf += f"n_ex_tests 0\n"
             conf += f"n_sample_tests 0\n"
             # Hack: universaloj doesn't support float TL. Round to integer instead.
-            conf += f"time_limit {round(tl / 1000)}\n"
+            conf += f"time_limit {math.ceil(tl / 1000)}\n"
             conf += f"memory_limit {ml}\n"
             if task["specialJudge"] in ("", "wcmp"):
-                conf += f"use_builtin_checker wcmp\n"
+                conf += f"use_builtin_checker {checker_name}\n"
                 if not silent:
-                    print(f"INFO: Using `wcmp` for task {taskname}.")
+                    print(f"INFO: Using `{checker_name}` for task {taskname}.")
             else:
                 spj_name = (
                     task["specialJudge"].replace(".exe", ".cpp").replace(".bin", ".cpp")
