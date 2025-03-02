@@ -1,4 +1,8 @@
-import platform, os, zipfile, shutil
+import platform, os, zipfile, shutil, asyncio, base64
+from io import BytesIO
+from pdf2image import convert_from_path
+import ai
+from pypdf import PdfReader, PdfWriter
 
 os_info = platform.system()
 
@@ -71,3 +75,36 @@ def copy_dir(fr, to, silent):
         path = os.path.join(fr, file)
         if not os.path.isdir(path):
             copy_files(path, to, silent)
+
+
+def pdf2images(path, st_page, ed_page):
+    images = convert_from_path(path, first_page=st_page, last_page=ed_page - 1)
+    encoded_images = []
+    for image in images:
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        encoded_image = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        encoded_images.append(encoded_image)
+    return encoded_images
+
+
+def parsePDF(fr, to, st_page, ed_page):
+    images = pdf2images(fr, st_page, ed_page)
+    md = ""
+    for i, image in enumerate(images):
+        print(f"INFO: Processing image {i + 1}...")
+        md += ai.image2md(image)
+    with open(to, "w") as f:
+        f.write(md)
+
+
+def splitPDF(fr, to, st_page, ed_page):
+    reader = PdfReader(fr)
+    writer = PdfWriter()
+
+    for i in range(st_page - 1, ed_page - 1):
+        writer.add_page(reader.pages[i])
+
+    print(f"DEBUG {fr} -> {to}")
+    with open(to, "wb") as out_pdf:
+        writer.write(out_pdf)

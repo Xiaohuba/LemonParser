@@ -14,12 +14,12 @@ parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
 parser.add_argument("filename", type=str, help="Lemon work path")
 parser.add_argument("-S", "--silent", help="Silent mode", action="store_true")
 parser.add_argument(
-    "-D", "--down", help="Attach statement and samples", action="store_true"
+    "-D", "--attach-down", help="Attach statement and samples", action="store_true"
 )
 parser.add_argument("-E", "--editorial", help="Attach editorial", action="store_true")
 parser.add_argument(
     "-H",
-    "--hack",
+    "--enable-hack",
     help="Enable hack(both std and validator are required)",
     action="store_true",
 )
@@ -28,19 +28,29 @@ parser.add_argument(
     "--task", nargs="?", default="*", help="Parse specific task (* for all)"
 )
 parser.add_argument(
-    "--noip", help="Use noip-style checker instead of `wcmp`", action="store_true"
+    "--noip-checker",
+    help="Use noip-style checker instead of `wcmp`",
+    action="store_true",
+)
+parser.add_argument(
+    "--parse-pdf",
+    help="[Experimental] use qwen2.5-vl to generate markdown version of statement from pdf",
+    action="store_true",
 )
 args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
 silent = args.silent
-attach_down = args.down
+attach_down = args.attach_down
 attach_sol = args.editorial
-hack = args.hack
+hack = args.enable_hack
 parse_task = args.task
 create_zip = args.zip
-checker_name = "noip" if args.noip else "wcmp"
+parse_pdf = args.parse_pdf
+
+checker_name = "noip" if args.noip_checker else "wcmp"
 cdfPath = utils.getCDFPath(lemonDir)
+statement_path = os.path.join("down", "statement.pdf")
 
 if hack:
     print("WARNING: Hack is not supported yet.")
@@ -49,6 +59,12 @@ if cdfPath is None:
     print("ERROR: No .cdf file found!")
     print("Exiting...")
     exit(1)
+
+if parse_pdf:
+    if not os.path.exists(statement_path):
+        print("ERROR: statement.pdf not found!")
+        print("Exiting...")
+        exit(1)
 
 print(f"INFO: Loaded .cdf file: {cdfPath}\n")
 print(f"INFO: default checker set to: {checker_name}\n")
@@ -65,6 +81,7 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
         )
         os.rename("to_uoj", f"to_uoj.{random.randint(1,9999)}.old")
         os.mkdir("to_uoj")
+
     for task in tasks:
         try:
             taskname = task["problemTitle"]
@@ -73,6 +90,14 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
             print("=======\n")
             print(f"INFO: Parsing task {taskname}...")
             os.mkdir(os.path.join("to_uoj", taskname))
+
+            print("Please input page range [l, r) from statement.pdf.")
+            st = int(input("start: "))
+            ed = int(input("end: "))
+            if parse_pdf:
+                to = os.path.join("to_uoj", taskname, "statement.md")
+                utils.parsePDF(statement_path, to, st, ed)
+
             testcases = task["testCases"]
             conf = f"# auto-generated-conf-file-by-lemon-parser-{__version__}\n"
             cnt = 0
@@ -158,14 +183,16 @@ with open(cdfPath, "r", encoding="utf-8") as cdf:
                     spjFile.write(text)
                     spjFile.close()
             if attach_down:
-                statement_path = os.path.join("down", "statement.pdf")
                 sample_path = os.path.join("down", taskname)
                 down_path = os.path.join("to_uoj", taskname, "download")
                 main_path = os.path.join("to_uoj", taskname)
                 os.mkdir(down_path)
                 try:
                     utils.copy_files(statement_path, down_path, silent)
-                    utils.copy_files(statement_path, main_path, silent)
+                    # utils.copy_files(statement_path, main_path, silent)
+                    utils.splitPDF(
+                        statement_path, os.path.join(main_path, "statement.pdf"), st, ed
+                    )
                     utils.copy_dir(sample_path, down_path, silent)
                 except Exception as exp:
                     print(f"ERROR: Failed to attach statement!\nException is {exp}")
