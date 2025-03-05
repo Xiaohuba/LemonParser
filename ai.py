@@ -10,12 +10,13 @@ prompt = """请将图片内容转为规范的 markdown+latex。
 - 请直接输出 markdown 源码，不要输出任何额外信息。"""
 
 
-def image2md(base64_image):
-    client = openai.OpenAI(
+async def image2md(base64_image):
+    print("INFO: Sending request...")
+    client = openai.AsyncOpenAI(
         api_key=os.getenv("DASHSCOPE_API_KEY"),
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
     )
-    completion = client.chat.completions.create(
+    completion = await client.chat.completions.create(
         model="qwen2.5-vl-72b-instruct",
         messages=[
             {
@@ -33,4 +34,5 @@ def image2md(base64_image):
             }
         ],
     )
+    print("INFO: Recieved response.")
     return completion.choices[0].message.content

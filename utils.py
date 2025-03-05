@@ -1,4 +1,4 @@
-import platform, os, zipfile, shutil, asyncio, base64
+import platform, os, zipfile, shutil, base64, asyncio, time
 from io import BytesIO
 from pdf2image import convert_from_path
 import ai
@@ -52,7 +52,8 @@ def isDependence(name):
         return -1
 
 
-def zipProblem(path):
+async def zipProblem(path, taskname):
+    print(f"INFO: Creating zipfile for task `{taskname}`...")
     cur = os.path.abspath(os.curdir)
     zip_obj = zipfile.ZipFile(path + ".zip", "w", zipfile.ZIP_DEFLATED)
     os.chdir(path)
@@ -61,6 +62,7 @@ def zipProblem(path):
             zip_obj.write(os.path.join(root, file))
     zip_obj.close()
     os.chdir(cur)
+    print(f"INFO: Finished creating zipfile for task `{taskname}`.")
 
 
 def copy_files(fr, to, silent):
@@ -88,14 +90,17 @@ def pdf2images(path, st_page, ed_page):
     return encoded_images
 
 
-def parsePDF(fr, to, st_page, ed_page):
+async def parsePDF(fr, to, st_page, ed_page):
+    ti_st = time.time()
     images = pdf2images(fr, st_page, ed_page)
     md = ""
-    for i, image in enumerate(images):
-        print(f"INFO: Processing image {i + 1}...")
-        md += ai.image2md(image)
+    results = await asyncio.gather(*[ai.image2md(image) for image in images])
+    for content in results:
+        md += content
     with open(to, "w") as f:
         f.write(md)
+    ti_ed = time.time()
+    print(f"INFO: Parsed PDF in {ti_ed - ti_st:.2f}s.")
 
 
 def splitPDF(fr, to, st_page, ed_page):
@@ -105,6 +110,6 @@ def splitPDF(fr, to, st_page, ed_page):
     for i in range(st_page - 1, ed_page - 1):
         writer.add_page(reader.pages[i])
 
-    print(f"DEBUG {fr} -> {to}")
+    # print(f"DEBUG {fr} -> {to}")
     with open(to, "wb") as out_pdf:
         writer.write(out_pdf)
