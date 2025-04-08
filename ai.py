@@ -28,15 +28,18 @@ async def image2md(base64_images):
         model="qwen2.5-vl-32b-instruct",
         messages=[
             {
-                "role": "user",
+                "role": "system",
                 "content": [
                     {
                         "type": "text",
                         "text": prompt,
                     },
-                ]
-                + image_contents,
-            }
+                ],
+            },
+            {
+                "role": "user",
+                "content": image_contents,
+            },
         ],
     )
     print("INFO: Recieved response.")
