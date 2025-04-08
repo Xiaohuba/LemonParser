@@ -93,10 +93,7 @@ def pdf2images(path, st_page, ed_page):
 async def parsePDF(fr, to, st_page, ed_page):
     ti_st = time.time()
     images = pdf2images(fr, st_page, ed_page)
-    md = ""
-    results = await asyncio.gather(*[ai.image2md(image) for image in images])
-    for content in results:
-        md += content
+    md = await ai.image2md(images)
     with open(to, "w") as f:
         f.write(md)
     ti_ed = time.time()
