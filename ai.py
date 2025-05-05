@@ -41,6 +41,18 @@ async def image2md(base64_images):
                 "content": image_contents,
             },
         ],
+        stream=True,
+        stream_options={"include_usage": True},
+        extra_body={"enable_thinking": False},
     )
-    print("INFO: Recieved response.")
-    return completion.choices[0].message.content
+    response = ""
+    token_count = 0
+    async for chunk in completion:
+        if chunk.choices:
+            if chunk.choices[0].delta.content:
+                response += chunk.choices[0].delta.content
+        else:
+            token_count += chunk.usage.total_tokens
+            break
+    print(f"INFO: Recieved response, {token_count} tokens used.")
+    return response
