@@ -142,7 +142,7 @@ async def main():
                         to = os.path.join(
                             "to_uoj",
                             taskname,
-                            f"{task['problemTitle']}{caseid + cnt}.in",
+                            f"{taskname}{caseid + cnt}.in",
                         )
                         utils.copy_files(fr, to, silent)
                     caseid = 0
@@ -152,7 +152,7 @@ async def main():
                         to = os.path.join(
                             "to_uoj",
                             taskname,
-                            f"{task['problemTitle']}{caseid + cnt}.out",
+                            f"{taskname}{caseid + cnt}.out",
                         )
                         utils.copy_files(fr, to, silent)
 
