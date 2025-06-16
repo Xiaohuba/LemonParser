@@ -89,7 +89,7 @@ async def main():
 
         for task in tasks:
             try:
-                taskname = task["problemTitle"]
+                taskname = task["sourceFileName"]
                 if not parse_task.count("*") and not parse_task.count(taskname):
                     continue
                 print("=======\n")
