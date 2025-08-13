@@ -24,10 +24,11 @@ options:
   -S, --silent       Silent mode
   -D, --attach-down  Attach statement and samples
   -E, --editorial    Attach editorial
+  -H, --enable-hack  Enable hack(both std and validator are required)
   -Z, --zip          Auto create zipfile
   --task [TASK]      Parse specific task (* for all)
   --noip-checker     Use noip-style checker instead of `wcmp`
-  --parse-pdf        [Experimental] use qwen2.5-vl to generate markdown
-                     version of statement from pdf
-
+  --parse-pdf        [Experimental] use gemini 2.5 flash to generate markdown
+                     version of statement from pdf, you need to set the
+                     OPENROUTER_API_KEY environment variable
 ```

@@ -34,7 +34,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--parse-pdf",
-    help="[Experimental] use qwen2.5-vl to generate markdown version of statement from pdf",
+    help="[Experimental] use gemini 2.5 flash to generate markdown version of statement from pdf, you need to set the OPENROUTER_API_KEY environment variable",
     action="store_true",
 )
 args = parser.parse_args()
