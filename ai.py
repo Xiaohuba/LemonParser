@@ -25,7 +25,7 @@ async def image2md(base64_images):
         for base64_image in base64_images
     ]
     completion = await client.chat.completions.create(
-        model="openai/gpt-5-mini",
+        model="qwen/qwen3-vl-235b-a22b-instruct",
         messages=[
             {
                 "role": "system",
