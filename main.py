@@ -34,9 +34,17 @@ parser.add_argument(
 )
 parser.add_argument(
     "--parse-pdf",
-    help="[Experimental] use gemini 2.5 flash to generate markdown version of statement from pdf, you need to set the OPENROUTER_API_KEY environment variable",
+    help="[Experimental] use qwen3 vl to generate markdown version of statement from pdf, you need to set the OPENROUTER_API_KEY environment variable",
     action="store_true",
 )
+parser.add_argument(
+    "--statement-format",
+    help="Specify the output format of the parsed statement (md or json)",
+    choices=["md", "json"],
+    default="md",
+)
+parser.add_argument("--version", action="version", version=f"Lemonparser {__version__}")
+
 args = parser.parse_args()
 
 lemonDir = os.path.abspath(args.filename)
@@ -47,6 +55,7 @@ hack = args.enable_hack
 parse_task = args.task
 create_zip = args.zip
 parse_pdf = args.parse_pdf
+format = args.statement_format
 
 checker_name = "noip" if args.noip_checker else "wcmp"
 cdfPath = utils.getCDFPath(lemonDir)
@@ -100,8 +109,33 @@ async def main():
                 st = int(input("start: "))
                 ed = int(input("end: "))
                 if parse_pdf:
-                    to = os.path.join("to_uoj", f"{taskname}.md")
-                    background_tasks += [utils.parsePDF(statement_path, to, st, ed)]
+                    if format == "json":
+                        to = os.path.join("to_uoj", f"{taskname}.json")
+                        difficulty = int(input("Please input difficulty (0-9): "))
+                        impl_hardness = int(
+                            input("Please input implementation hardness (800-3500): ")
+                        )
+                        tags = input("Please input tags (space separated): ").split()
+                        is_public = (
+                            input("Is this problem public? (y/n): ").lower() == "y"
+                        )
+                        origin = input("Please input link to the origin: ")
+                        background_tasks += [
+                            utils.parsePDFtoJSON(
+                                statement_path,
+                                to,
+                                st,
+                                ed,
+                                difficulty,
+                                impl_hardness,
+                                tags,
+                                is_public,
+                                origin,
+                            )
+                        ]
+                    else:
+                        to = os.path.join("to_uoj", f"{taskname}.md")
+                        background_tasks += [utils.parsePDF(statement_path, to, st, ed)]
                     # new_task = asyncio.create_task(
                     #     utils.parsePDF(statement_path, to, st, ed)
                     # )

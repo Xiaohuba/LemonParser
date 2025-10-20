@@ -1,4 +1,4 @@
-import platform, os, zipfile, shutil, base64, asyncio, time
+import platform, os, zipfile, shutil, base64, time, json
 from io import BytesIO
 from pdf2image import convert_from_path
 import ai
@@ -96,6 +96,29 @@ async def parsePDF(fr, to, st_page, ed_page):
     md = await ai.image2md(images)
     with open(to, "w") as f:
         f.write(md)
+    ti_ed = time.time()
+    print(f"INFO: Parsed PDF in {ti_ed - ti_st:.2f}s.")
+
+
+async def parsePDFtoJSON(
+    fr, to, st_page, ed_page, difficulty, impl_hardness, tags, is_public, origin
+):
+    ti_st = time.time()
+    images = pdf2images(fr, st_page, ed_page)
+    md = await ai.image2md(images)
+    title = md.split("\n")[0].replace("### ", "").strip()
+    description = "\n".join(md.split("\n")[1:]).strip()
+    json_data = {
+        "title": title,
+        "description": description,
+        "difficulty": difficulty,
+        "tags": tags,
+        "shit_score": impl_hardness,
+        "public": is_public,
+        "origin": origin,
+    }
+    with open(to, "w") as f:
+        f.write(json.dumps(json_data))
     ti_ed = time.time()
     print(f"INFO: Parsed PDF in {ti_ed - ti_st:.2f}s.")
 
