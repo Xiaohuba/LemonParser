@@ -7,7 +7,7 @@ Author: Xiaohuba
 import json, argparse, os, random, sys, math, asyncio
 import utils
 
-__version__ = "0.12"
+__version__ = "0.13"
 __author__ = "Xiaohuba"
 
 parser = argparse.ArgumentParser(description="Parse Lemonlime conf files(.cdf)")
